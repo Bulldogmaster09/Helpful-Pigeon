@@ -1,0 +1,220 @@
+// server.js — Pigeon proxy com cookie jar
+const http = require("http");
+const fs   = require("fs");
+const path = require("path");
+const { URL } = require("url");
+
+const PORT    = process.env.PORT   || 8080;
+const HOST    = process.env.HOST   || "0.0.0.0";
+const TOKEN   = process.env.TOKEN  || "";
+const TIMEOUT = 25000;
+
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+           "AppleWebKit/537.36 (KHTML, like Gecko) " +
+           "Chrome/120.0.0.0 Safari/537.36";
+
+/* ============================================================
+   COOKIE JAR
+   ------------------------------------------------------------
+   Guarda cookies por (cliente + domínio de destino).
+   Chave:  "IP_DO_CLIENTE|example.com"
+   Valor:  { nome: valor, ... }
+   ============================================================ */
+const jars = new Map();
+
+function clientIp(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  if (fwd) return String(fwd).split(",")[0].trim();
+  return req.socket.remoteAddress || "?";
+}
+
+function jarKey(req, host) {
+  return clientIp(req) + "|" + host;
+}
+
+function getCookies(req, host) {
+  return jars.get(jarKey(req, host)) || {};
+}
+
+function saveCookies(req, host, cookieHeaderList) {
+  const key = jarKey(req, host);
+  const jar = jars.get(key) || {};
+
+  for (const raw of cookieHeaderList) {
+    // pega só "nome=valor" antes do primeiro ";"
+    const [pair] = raw.split(";");
+    const eq = pair.indexOf("=");
+    if (eq < 0) continue;
+    const name  = pair.slice(0, eq).trim();
+    const value = pair.slice(eq + 1).trim();
+    if (name) jar[name] = value;
+  }
+  jars.set(key, jar);
+}
+
+function cookieHeader(req, host) {
+  const jar = getCookies(req, host);
+  const parts = Object.entries(jar).map(([k,v]) => `${k}=${v}`);
+  return parts.length ? parts.join("; ") : null;
+}
+
+/* ============================================================
+   FETCH COM REDIRECTS MANUAIS (para capturar cookies em cada hop)
+   ============================================================ */
+async function fetchWithCookies(req, url, depth = 0) {
+  if (depth > 10) throw new Error("Muitos redirecionamentos");
+
+  const u = new URL(url);
+  const cookie = cookieHeader(req, u.host);
+
+  const headers = {
+    "User-Agent": UA,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9," +
+              "image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+  };
+  if (cookie) headers["Cookie"] = cookie;
+
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), TIMEOUT);
+
+  let r;
+  try {
+    r = await fetch(u.href, {
+      method: "GET",
+      redirect: "manual",
+      signal: ctl.signal,
+      headers,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+
+  // guarda os cookies deste hop
+  const setCookies = r.headers.getSetCookie
+    ? r.headers.getSetCookie()
+    : (r.headers.get("set-cookie") ? [r.headers.get("set-cookie")] : []);
+  if (setCookies.length) saveCookies(req, u.host, setCookies);
+
+  // redirect?
+  if (r.status >= 300 && r.status < 400) {
+    const loc = r.headers.get("location");
+    if (loc) {
+      const next = new URL(loc, u.href).href;
+      return fetchWithCookies(req, next, depth + 1);
+    }
+  }
+
+  return r;
+}
+
+/* ============================================================
+   CORS
+   ============================================================ */
+function setCors(res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+  res.setHeader("Access-Control-Expose-Headers",
+                "X-Pigeon-Final-URL, Content-Type");
+  res.setHeader("Access-Control-Max-Age", "86400");
+}
+
+/* ============================================================
+   SERVIDOR
+   ============================================================ */
+const server = http.createServer(async (req, res) => {
+  setCors(res);
+  const ip = clientIp(req);
+
+  if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
+
+  const reqUrl = new URL(req.url, "http://" + (req.headers.host || "localhost"));
+
+  // ---- HTML do Pigeon ----
+  if (reqUrl.pathname === "/" || reqUrl.pathname === "/index.html") {
+    const file = path.join(__dirname, "index.html");
+    return fs.readFile(file, (err, data) => {
+      if (err) {
+        res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"});
+        return res.end("index.html nao encontrado");
+      }
+      res.writeHead(200, {"Content-Type":"text/html; charset=utf-8"});
+      res.end(data);
+    });
+  }
+
+  if (reqUrl.pathname !== "/proxy") {
+    res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"});
+    return res.end("Use / ou /proxy?url=");
+  }
+
+  // ---- token ----
+  if (TOKEN) {
+    const provided = reqUrl.searchParams.get("token") ||
+                     req.headers["x-pigeon-token"];
+    if (provided !== TOKEN) {
+      console.log(`[${ip}] token invalido`);
+      res.writeHead(401, {"Content-Type":"text/plain; charset=utf-8"});
+      return res.end("Token invalido");
+    }
+  }
+
+  const target = reqUrl.searchParams.get("url");
+  if (!target) {
+    res.writeHead(400, {"Content-Type":"text/plain; charset=utf-8"});
+    return res.end("Faltou ?url=");
+  }
+
+  let targetUrl;
+  try {
+    targetUrl = new URL(target);
+    if (!/^https?:$/.test(targetUrl.protocol)) throw new Error("so http/https");
+  } catch (e) {
+    res.writeHead(400, {"Content-Type":"text/plain; charset=utf-8"});
+    return res.end("URL invalida: " + e.message);
+  }
+
+  console.log(`[${ip}] -> ${targetUrl.href}`);
+
+  try {
+    const r = await fetchWithCookies(req, targetUrl.href);
+
+    // descobre a URL final (após redirects)
+    const finalUrl = r.url || targetUrl.href;
+
+    const ct = r.headers.get("content-type") || "text/html; charset=utf-8";
+    const buf = Buffer.from(await r.arrayBuffer());
+
+    console.log(`[${ip}] <- ${r.status} ${finalUrl}`);
+
+    res.writeHead(r.status, {
+      "Content-Type": ct,
+      "X-Pigeon-Final-URL": finalUrl,
+      "Cache-Control": "no-store",
+    });
+    res.end(buf);
+  } catch (err) {
+    const msg = err.name === "AbortError"
+      ? `Timeout (${TIMEOUT}ms)`
+      : err.message;
+    console.log(`[${ip}] erro: ${msg}`);
+    res.writeHead(502, {"Content-Type":"text/plain; charset=utf-8"});
+    res.end("Erro no proxy: " + msg);
+  }
+});
+
+server.listen(PORT, HOST, () => {
+  console.log("");
+  console.log("  Pigeon proxy (com cookies)");
+  console.log("  -----------------------------");
+  console.log("  Escutando em:  " + HOST + ":" + PORT);
+  console.log("  Token:         " + (TOKEN ? TOKEN : "NENHUM"));
+  console.log("");
+});
