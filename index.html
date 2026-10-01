@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Helpful Pigeon</title>
+<style>
+:root{--bg:#07070b;--panel:#111116;--panel2:#17171e;--line:#27272f;--text:#f7f7fa;--muted:#9898a6;--accent:#8b5cf6}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+body{overflow:hidden}.app{height:100%;display:flex;flex-direction:column}
+.top{height:62px;display:flex;align-items:center;padding:0 18px;gap:12px;background:rgba(17,17,22,.96);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}.logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#9b6cff,#6840d9);overflow:hidden}.logo img{width:34px;height:34px;object-fit:contain}
+.brand b{font-size:17px}.brand span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.account{margin-left:auto;display:flex;align-items:center;gap:8px}.avatar{width:30px;height:30px;border-radius:50%;background:#262631;display:grid;place-items:center;font-size:12px}.login{background:#fff;color:#101014;border:0;border-radius:10px;padding:9px 14px;font-weight:700}
+.nav{height:58px;padding:9px 16px;display:flex;align-items:center;gap:7px;background:#0d0d12;border-bottom:1px solid var(--line)}
+.nav button{width:38px;height:38px;border:1px solid transparent;border-radius:10px;background:transparent;color:#aaaab5;font-size:23px;cursor:pointer}.nav button:hover{background:#1b1b23;color:#fff}
+.address{flex:1;height:40px;display:flex;align-items:center;gap:8px;padding:0 13px;border:1px solid var(--line);border-radius:12px;background:#16161d}.lock{font-size:13px;color:#79d69a}.address input{width:100%;border:0;outline:0;background:transparent;color:#eee;font-size:14px}.go{height:38px;padding:0 15px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.info{height:30px;padding:0 17px;display:flex;align-items:center;gap:7px;color:#7f7f8c;font-size:11px;background:#0a0a0e;border-bottom:1px solid #1c1c23}.dot{width:7px;height:7px;border-radius:50%;background:#5ed38b;box-shadow:0 0 10px #5ed38b}
+.view{flex:1;position:relative;background:#fff}.page{width:100%;height:100%;border:0;background:#fff;overflow:auto}.welcome{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,#171322 0,#0a0a0e 45%,#07070b 100%)}.welcome.hidden{display:none}.emptybox{text-align:center}.biglogo{width:82px;height:82px;margin:auto;display:grid;place-items:center}.biglogo img{width:82px;height:82px;object-fit:contain;border-radius:14px}.emptybox h1{font-size:27px;margin:12px 0 6px}.emptybox p{margin:0;color:var(--muted);font-size:13px}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);z-index:20}.modal.show{display:flex}.card{width:min(390px,100%);padding:28px;border:1px solid #30303a;border-radius:22px;background:linear-gradient(180deg,#19191f,#101015);box-shadow:0 30px 100px #000}.mini{width:54px;height:54px}.mini img{width:54px;height:54px;object-fit:contain;border-radius:12px}.card h2{margin:12px 0 5px;font-size:23px}.card p{margin:0 0 20px;color:var(--muted);font-size:13px;line-height:1.5}.email{width:100%;height:48px;padding:0 14px;border-radius:12px;border:1px solid #33333d;background:#0d0d12;color:#fff;outline:0;font-size:14px}.error{min-height:22px;padding-top:7px;color:#ff8585;font-size:12px}.submit{width:100%;height:46px;margin-top:8px;border:0;border-radius:12px;background:linear-gradient(135deg,#9b6cff,#7043df);color:#fff;font-weight:750}.status{color:#8ee0a8;font-size:12px;margin-top:10px}.hidden{display:none!important}
+@media(max-width:650px){.top{padding:0 12px}.brand span{display:none}.nav{padding:8px}.info{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand"><div class="logo"><img src="/pigeon.png" alt=""></div><div><b>Helpful Pigeon</b><span>Private browsing workspace</span></div></div>
+  <div class="account"><div class="avatar" id="avatar">?</div><button class="login" id="loginBtn">Entrar</button></div>
+</header>
+<div class="nav">
+  <button id="back" title="Voltar">‹</button><button id="forward" title="Avançar">›</button><button id="reload" title="Recarregar">↻</button>
+  <div class="address"><span class="lock">●</span><input id="url" value="https://example.com" autocomplete="url" spellcheck="false"></div><button class="go" id="go">Ir</button>
+</div>
+<div class="info"><span class="dot"></span><span id="proxyStatus">Proxy local · 192.168.68.118:3128 · sem autenticação</span></div>
+<main class="view">
+  <div class="welcome" id="welcome"><div class="emptybox"><div class="biglogo"><img src="/pigeon.png" alt=""></div><h1>Helpful Pigeon</h1><p>Digite um endereço para navegar através do proxy.</p></div></div>
+  <iframe class="page" id="page" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts" title="Navegador"></iframe>
+</main>
+</div>
+
+<div class="modal show" id="modal">
+  <div class="card">
+    <div class="mini"><img src="/pigeon.png" alt=""></div>
+    <h2 id="authTitle">Entrar no Helpful Pigeon</h2>
+    <p id="authText">O login é obrigatório. Digite seu e-mail e enviaremos um link de verificação. Não existe senha.</p>
+    <input class="email" id="email" type="email" placeholder="voce@exemplo.com" autocomplete="email" inputmode="email">
+    <div class="error" id="error"></div>
+    <button class="submit" id="submit">Enviar verificação por e-mail</button>
+    <div class="status hidden" id="status"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://yrbtgsaabzemlnwmkpjo.supabase.co';
+const SUPABASE_KEY='sb_publishable_trBeCPUWk7Le7ykK8pXibQ_iDYkvUKC';
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+const page=$('page'), url=$('url'), welcome=$('welcome'), modal=$('modal');
+let currentUrl='';
+
+function normalize(v){v=v.trim();if(!v)return 'https://example.com';if(!/^https?:\/\//i.test(v))v='https://'+v;return v}
+async function loadUrl(){
+  const u=normalize(url.value); url.value=u; currentUrl=u; welcome.classList.add('hidden');
+  page.src='/proxy?url='+encodeURIComponent(u);
+}
+$('go').onclick=loadUrl; url.onkeydown=e=>{if(e.key==='Enter')loadUrl()};
+$('reload').onclick=()=>{if(currentUrl) page.src='/proxy?url='+encodeURIComponent(currentUrl)};
+$('back').onclick=()=>{try{page.contentWindow.history.back()}catch{}};
+$('forward').onclick=()=>{try{page.contentWindow.history.forward()}catch{}};
+$('loginBtn').onclick=()=>modal.classList.add('show');
+
+function unlock(session){const mail=session?.user?.email||'';modal.classList.remove('show');$('loginBtn').textContent=mail?mail.split('@')[0]:'Conta';$('avatar').textContent=mail?mail[0].toUpperCase():'✓'}
+async function auth(){
+  const {data:{session}}=await supabase.auth.getSession();
+  if(session) unlock(session); else modal.classList.add('show');
+  supabase.auth.onAuthStateChange((_e,s)=>s?unlock(s):(modal.classList.add('show'),$('loginBtn').textContent='Entrar'));
+}
+$('submit').onclick=async()=>{
+  const v=$('email').value.trim();$('error').textContent='';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ $('error').textContent='Digite um e-mail válido.';return }
+  $('submit').disabled=true;$('submit').textContent='Enviando…';
+  const {error}=await supabase.auth.signInWithOtp({email:v,options:{emailRedirectTo:window.location.origin+'/' }});
+  if(error){$('error').textContent=error.message;$('submit').disabled=false;$('submit').textContent='Enviar verificação por e-mail';return}
+  $('authTitle').textContent='Verifique seu e-mail';$('authText').textContent='Enviamos um link de acesso para '+v+'. Abra o e-mail e toque no link.';
+  $('email').classList.add('hidden');$('submit').classList.add('hidden');$('status').classList.remove('hidden');$('status').textContent='Depois de confirmar o e-mail, esta página será desbloqueada automaticamente.';
+};
+auth();
+</script>
+</body>
+</html>
