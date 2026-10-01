@@ -1,31 +1,3 @@
-  USE ESSA
-Feito. Agora a logo é exatamente essa imagem do pombo que você enviou, sem gerar ou redesenhar nada.
-Baixar o Helpful Pigeon atualizado 
-
-
-helpful-pigeon.html
-HTML
-
-Esse erro não é do Helpful Pigeon em si. O Vercel está mostrando 404 porque não encontrou uma página publicada na rota principal /.
-Pelo endereço helpful-pigeon-proxy.vercel.app, o próximo passo é corrigir a estrutura do projeto:
-
-helpful-pigeon/
-├── index.html
-├── package.json
-└── public/
-    └── pigeon.png
-O ponto principal é: o arquivo da página precisa se chamar index.html e estar na raiz do projeto.
-Se você me mandar uma captura da tela do projeto no Vercel/CodeSpaces mostrando os arquivos, eu te digo exatamente o que mover/renomear para esse endereço abrir.
-Faca o login ser obrigatorio e sem senha apenas uma verificacao no email
-Feito. Agora o Helpful Pigeon está configur
-Feito. Agora o Helpful Pigeon está configurado para:
-🔒 login obrigatório — não dá para entrar no navegador sem autenticar;
-📧 somente e-mail, sem senha;
-✉️ envia um link de verificação por e-mail;
-🔓 o navegador só é liberado depois que o e-mail for confirmado;
-🐦 mantém a logo do pombo que você enviou.
-Baixar o Helpful Pigeon atualizado
-Importante: para a verificação funcionar de verdade no seu Vercel, falta conectar o projeto ao Supabase Auth. O arquivo já está preparado para isso, mas ainda precisa da URL e da chave anon do seu projeto Supabase.
 <!doctype html>
 <html lang="pt-BR">
 <head>
