@@ -1,90 +1,960 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Helpful Pigeon</title>
-<style>
-:root{--bg:#07070b;--panel:#111116;--panel2:#17171e;--line:#27272f;--text:#f7f7fa;--muted:#9898a6;--accent:#8b5cf6}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
-body{overflow:hidden}.app{height:100%;display:flex;flex-direction:column}
-.top{height:62px;display:flex;align-items:center;padding:0 18px;gap:12px;background:rgba(17,17,22,.96);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px}.logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#9b6cff,#6840d9);overflow:hidden}.logo img{width:34px;height:34px;object-fit:contain}
-.brand b{font-size:17px}.brand span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.account{margin-left:auto;display:flex;align-items:center;gap:8px}.avatar{width:30px;height:30px;border-radius:50%;background:#262631;display:grid;place-items:center;font-size:12px}.login{background:#fff;color:#101014;border:0;border-radius:10px;padding:9px 14px;font-weight:700}
-.nav{height:58px;padding:9px 16px;display:flex;align-items:center;gap:7px;background:#0d0d12;border-bottom:1px solid var(--line)}
-.nav button{width:38px;height:38px;border:1px solid transparent;border-radius:10px;background:transparent;color:#aaaab5;font-size:23px;cursor:pointer}.nav button:hover{background:#1b1b23;color:#fff}
-.address{flex:1;height:40px;display:flex;align-items:center;gap:8px;padding:0 13px;border:1px solid var(--line);border-radius:12px;background:#16161d}.lock{font-size:13px;color:#79d69a}.address input{width:100%;border:0;outline:0;background:transparent;color:#eee;font-size:14px}.go{height:38px;padding:0 15px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
-.info{height:30px;padding:0 17px;display:flex;align-items:center;gap:7px;color:#7f7f8c;font-size:11px;background:#0a0a0e;border-bottom:1px solid #1c1c23}.dot{width:7px;height:7px;border-radius:50%;background:#5ed38b;box-shadow:0 0 10px #5ed38b}
-.view{flex:1;position:relative;background:#fff}.page{width:100%;height:100%;border:0;background:#fff;overflow:auto}.welcome{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,#171322 0,#0a0a0e 45%,#07070b 100%)}.welcome.hidden{display:none}.emptybox{text-align:center}.biglogo{width:82px;height:82px;margin:auto;display:grid;place-items:center}.biglogo img{width:82px;height:82px;object-fit:contain;border-radius:14px}.emptybox h1{font-size:27px;margin:12px 0 6px}.emptybox p{margin:0;color:var(--muted);font-size:13px}
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);z-index:20}.modal.show{display:flex}.card{width:min(390px,100%);padding:28px;border:1px solid #30303a;border-radius:22px;background:linear-gradient(180deg,#19191f,#101015);box-shadow:0 30px 100px #000}.mini{width:54px;height:54px}.mini img{width:54px;height:54px;object-fit:contain;border-radius:12px}.card h2{margin:12px 0 5px;font-size:23px}.card p{margin:0 0 20px;color:var(--muted);font-size:13px;line-height:1.5}.email{width:100%;height:48px;padding:0 14px;border-radius:12px;border:1px solid #33333d;background:#0d0d12;color:#fff;outline:0;font-size:14px}.error{min-height:22px;padding-top:7px;color:#ff8585;font-size:12px}.submit{width:100%;height:46px;margin-top:8px;border:0;border-radius:12px;background:linear-gradient(135deg,#9b6cff,#7043df);color:#fff;font-weight:750}.status{color:#8ee0a8;font-size:12px;margin-top:10px}.hidden{display:none!important}
-@media(max-width:650px){.top{padding:0 12px}.brand span{display:none}.nav{padding:8px}.info{font-size:10px}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Helpful Pigeon</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #08080c;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+    .app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #09090e;
+    }
+
+    /* HEADER */
+    .header {
+      height: 76px;
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 22px;
+      border-bottom: 1px solid #272730;
+      background: #101015;
+    }
+
+    .brand { display: flex; align-items: center; gap: 13px; }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      object-fit: cover;
+      background: #7c3aed;
+    }
+
+    .brand-text { display: flex; flex-direction: column; gap: 2px; }
+
+    .brand-title {
+      font-size: 21px;
+      font-weight: 750;
+      letter-spacing: -0.4px;
+    }
+
+    .brand-subtitle { color: #8d8d99; font-size: 13px; }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      border-radius: 12px;
+      outline: none;
+    }
+
+    .account:focus-visible { box-shadow: 0 0 0 2px #7c3aed; }
+
+    .account-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #272731;
+      color: #ddd;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .account-email {
+      background: #fff;
+      color: #17171c;
+      border-radius: 12px;
+      padding: 11px 15px;
+      font-size: 14px;
+      font-weight: 650;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* BROWSER BAR */
+    .browser {
+      padding: 12px 20px 8px;
+      background: #0b0b10;
+      border-bottom: 1px solid #202027;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-buttons { display: flex; gap: 5px; }
+
+    .nav-button {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      background: transparent;
+      color: #aaaab5;
+      border-radius: 10px;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .nav-button:hover:not(:disabled) { background: #181820; color: #fff; }
+    .nav-button:disabled { opacity: .3; cursor: default; }
+
+    .address-wrap {
+      flex: 1;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      background: #17171f;
+      border: 1px solid #2b2b36;
+      border-radius: 14px;
+      padding: 0 14px;
+      min-width: 0;
+    }
+
+    .secure-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #5ee28a;
+      margin-right: 12px;
+      flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(94, 226, 138, .25);
+    }
+
+    #url {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #f4f4f7;
+      font-size: 17px;
+      min-width: 0;
+    }
+
+    #url::selection { background: #6841c7; }
+
+    .go-button {
+      height: 50px;
+      min-width: 60px;
+      border: 0;
+      border-radius: 14px;
+      background: #f4f4f5;
+      color: #15151a;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 0 18px;
+      touch-action: manipulation;
+    }
+
+    .go-button:active { transform: scale(.97); }
+
+    .status {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      color: #777783;
+      font-size: 13px;
+      padding-left: 5px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #5ee28a;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .status.error .status-dot { background: #ff8181; }
+    .status.error { color: #ff8181; }
+
+    /* CONTENT */
+    .content {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: radial-gradient(circle at 50% 35%, #20202b 0, #0b0b10 48%, #08080c 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .welcome {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .welcome-logo {
+      width: 100px;
+      height: 100px;
+      border-radius: 28px;
+      object-fit: cover;
+      margin-bottom: 22px;
+    }
+
+    .welcome h1 { margin: 0 0 10px; font-size: 30px; }
+
+    .welcome p {
+      margin: 0;
+      color: #898994;
+      max-width: 500px;
+      line-height: 1.5;
+    }
+
+    .open-tab {
+      margin-top: 24px;
+      padding: 13px 20px;
+      border: 1px solid #34343e;
+      border-radius: 12px;
+      background: #17171f;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 650;
+      touch-action: manipulation;
+    }
+
+    .open-tab:hover { background: #1d1d26; }
+
+    .hint {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #5d5d68;
+      line-height: 1.6;
+    }
+
+    .hint kbd {
+      background: #17171f;
+      border: 1px solid #2b2b36;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 11px;
+      color: #bbb;
+    }
+
+    /* LOGIN */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, .72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .login-overlay.hidden { display: none; }
+
+    .login-card {
+      width: min(430px, 100%);
+      background: #15151c;
+      border: 1px solid #30303a;
+      border-radius: 22px;
+      padding: 30px;
+      box-shadow: 0 30px 100px rgba(0,0,0,.55);
+    }
+
+    .login-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      object-fit: cover;
+      margin-bottom: 18px;
+    }
+
+    .login-card h2 { margin: 0 0 8px; font-size: 25px; }
+
+    .login-card p {
+      margin: 0 0 22px;
+      color: #91919d;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .email-input {
+      width: 100%;
+      height: 50px;
+      border-radius: 12px;
+      border: 1px solid #34343f;
+      background: #0e0e14;
+      color: #fff;
+      outline: none;
+      padding: 0 15px;
+      font-size: 16px;
+    }
+
+    .email-input:focus { border-color: #7c3aed; }
+
+    .login-button {
+      width: 100%;
+      height: 50px;
+      margin-top: 12px;
+      border: 0;
+      border-radius: 12px;
+      background: #7c3aed;
+      color: #fff;
+      font-weight: 750;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .login-button:disabled { opacity: .6; cursor: default; }
+
+    .login-message {
+      min-height: 22px;
+      margin-top: 14px;
+      color: #8f8f9b;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .login-message.error { color: #ff8181; }
+    .login-message.success { color: #64df91; }
+
+    /* MOBILE */
+    @media (max-width: 700px) {
+      .header { height: 68px; min-height: 68px; padding: 10px 14px; }
+      .logo { width: 42px; height: 42px; }
+      .brand-title { font-size: 18px; }
+      .brand-subtitle { font-size: 11px; }
+      .account-avatar { display: none; }
+      .account-email { max-width: 120px; font-size: 12px; padding: 9px 10px; }
+      .browser { padding: 9px 9px 5px; }
+      .toolbar { gap: 5px; }
+      .nav-buttons { gap: 0; }
+      .nav-button { width: 34px; height: 42px; }
+      .address-wrap { height: 46px; padding: 0 10px; }
+      #url { font-size: 15px; }
+      .secure-dot { width: 9px; height: 9px; margin-right: 8px; }
+      .go-button { height: 46px; min-width: 50px; padding: 0 12px; font-size: 17px; }
+      .status { height: 27px; font-size: 11px; }
+    }
+  </style>
 </head>
+
 <body>
+
 <div class="app">
-<header class="top">
-  <div class="brand"><div class="logo"><img src="/pigeon.png" alt=""></div><div><b>Helpful Pigeon</b><span>Private browsing workspace</span></div></div>
-  <div class="account"><div class="avatar" id="avatar">?</div><button class="login" id="loginBtn">Entrar</button></div>
-</header>
-<div class="nav">
-  <button id="back" title="Voltar">‹</button><button id="forward" title="Avançar">›</button><button id="reload" title="Recarregar">↻</button>
-  <div class="address"><span class="lock">●</span><input id="url" value="https://example.com" autocomplete="url" spellcheck="false"></div><button class="go" id="go">Ir</button>
-</div>
-<div class="info"><span class="dot"></span><span id="proxyStatus">Proxy local · 192.168.68.118:3128 · sem autenticação</span></div>
-<main class="view">
-  <div class="welcome" id="welcome"><div class="emptybox"><div class="biglogo"><img src="/pigeon.png" alt=""></div><h1>Helpful Pigeon</h1><p>Digite um endereço para navegar através do proxy.</p></div></div>
-  <iframe class="page" id="page" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts" title="Navegador"></iframe>
-</main>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">
+      <img src="/pigeon.png" class="logo" alt="Helpful Pigeon">
+      <div class="brand-text">
+        <div class="brand-title">Helpful Pigeon</div>
+        <div class="brand-subtitle">Private browsing workspace</div>
+      </div>
+    </div>
+
+    <div class="account" id="account" role="button" tabindex="0" title="Sair">
+      <div class="account-avatar" id="accountAvatar">?</div>
+      <div class="account-email" id="accountEmail">—</div>
+    </div>
+  </header>
+
+  <!-- BROWSER BAR -->
+  <section class="browser">
+    <div class="toolbar">
+      <div class="nav-buttons">
+        <button class="nav-button" id="backButton" type="button" aria-label="Voltar" disabled>‹</button>
+        <button class="nav-button" id="forwardButton" type="button" aria-label="Avançar" disabled>›</button>
+        <button class="nav-button" id="reloadButton" type="button" aria-label="Recarregar">↻</button>
+      </div>
+
+      <div class="address-wrap">
+        <div class="secure-dot"></div>
+        <input
+          id="url"
+          type="text"
+          value=""
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+          inputmode="url"
+          aria-label="Endereço"
+          placeholder="Digite um endereço e pressione Enter"
+        >
+      </div>
+
+      <button class="go-button" id="goButton" type="button">Ir</button>
+    </div>
+
+    <div class="status" id="statusBar">
+      <span class="status-dot"></span>
+      <span id="proxyStatus">Pronto · Rammerhead via 3proxy</span>
+    </div>
+  </section>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <div class="welcome" id="welcome">
+      <img src="/pigeon.png" class="welcome-logo" alt="">
+      <h1>Helpful Pigeon</h1>
+      <p>
+        Digite um endereço acima e pressione <b>Enter</b>.<br>
+        A página será aberta pelo gateway Rammerhead.
+      </p>
+
+      <button class="open-tab" id="openTabButton" type="button">
+        Abrir em nova aba
+      </button>
+
+      <div class="hint">
+        Atalhos: <kbd>Ctrl</kbd>+<kbd>L</kbd> foca a barra ·
+        <kbd>Alt</kbd>+<kbd>←</kbd> volta ·
+        <kbd>Alt</kbd>+<kbd>→</kbd> avança
+      </div>
+    </div>
+  </main>
+
 </div>
 
-<div class="modal show" id="modal">
-  <div class="card">
-    <div class="mini"><img src="/pigeon.png" alt=""></div>
-    <h2 id="authTitle">Entrar no Helpful Pigeon</h2>
-    <p id="authText">O login é obrigatório. Digite seu e-mail e enviaremos um link de verificação. Não existe senha.</p>
-    <input class="email" id="email" type="email" placeholder="voce@exemplo.com" autocomplete="email" inputmode="email">
-    <div class="error" id="error"></div>
-    <button class="submit" id="submit">Enviar verificação por e-mail</button>
-    <div class="status hidden" id="status"></div>
+<!-- LOGIN -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <img src="/pigeon.png" class="login-logo" alt="Helpful Pigeon">
+    <h2>Entrar no Helpful Pigeon</h2>
+    <p>
+      Digite seu e-mail para receber um link de acesso.
+      Não é necessário criar uma senha.
+    </p>
+
+    <input
+      class="email-input"
+      id="emailInput"
+      type="email"
+      placeholder="seu@email.com"
+      autocomplete="email"
+      autocapitalize="none"
+      spellcheck="false"
+    >
+
+    <button class="login-button" id="loginButton" type="button">
+      Enviar link de acesso
+    </button>
+
+    <div class="login-message" id="loginMessage"></div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://yrbtgsaabzemlnwmkpjo.supabase.co';
-const SUPABASE_KEY='sb_publishable_trBeCPUWk7Le7ykK8pXibQ_iDYkvUKC';
-const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const $=id=>document.getElementById(id);
-const page=$('page'), url=$('url'), welcome=$('welcome'), modal=$('modal');
-let currentUrl='';
+/* =========================================================
+   CONFIG
+========================================================= */
 
-function normalize(v){v=v.trim();if(!v)return 'https://example.com';if(!/^https?:\/\//i.test(v))v='https://'+v;return v}
-async function loadUrl(){
-  const u=normalize(url.value); url.value=u; currentUrl=u; welcome.classList.add('hidden');
-  page.src='/proxy?url='+encodeURIComponent(u);
-}
-$('go').onclick=loadUrl; url.onkeydown=e=>{if(e.key==='Enter')loadUrl()};
-$('reload').onclick=()=>{if(currentUrl) page.src='/proxy?url='+encodeURIComponent(currentUrl)};
-$('back').onclick=()=>{try{page.contentWindow.history.back()}catch{}};
-$('forward').onclick=()=>{try{page.contentWindow.history.forward()}catch{}};
-$('loginBtn').onclick=()=>modal.classList.add('show');
+const SUPABASE_URL = 'https://yrbtgsaabzemlnwmkpjo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_trBeCPUWk7Le7ykK8pXibQ_iDYkvUKC';
+const AUTH_KEY = 'hp_auth_v1';
+const SESSION_SKEW_MS = 60 * 1000;
+const RAMMERHEAD_HOST = 'rh.helpful-pigeon-proxy.com';
 
-function unlock(session){const mail=session?.user?.email||'';modal.classList.remove('show');$('loginBtn').textContent=mail?mail.split('@')[0]:'Conta';$('avatar').textContent=mail?mail[0].toUpperCase():'✓'}
-async function auth(){
-  const {data:{session}}=await supabase.auth.getSession();
-  if(session) unlock(session); else modal.classList.add('show');
-  supabase.auth.onAuthStateChange((_e,s)=>s?unlock(s):(modal.classList.add('show'),$('loginBtn').textContent='Entrar'));
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+const urlInput      = $('url');
+const goButton      = $('goButton');
+const backButton    = $('backButton');
+const forwardButton = $('forwardButton');
+const reloadButton  = $('reloadButton');
+const statusBar     = $('statusBar');
+const proxyStatus   = $('proxyStatus');
+const loginOverlay  = $('loginOverlay');
+const loginButton   = $('loginButton');
+const emailInput    = $('emailInput');
+const loginMessage  = $('loginMessage');
+const account       = $('account');
+const accountEmail  = $('accountEmail');
+const accountAvatar = $('accountAvatar');
+const openTabButton = $('openTabButton');
+
+/* =========================================================
+   ESTADO
+========================================================= */
+
+let loggedIn = false;
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(text, isError = false) {
+  proxyStatus.textContent = text;
+  statusBar.classList.toggle('error', !!isError);
 }
-$('submit').onclick=async()=>{
-  const v=$('email').value.trim();$('error').textContent='';
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ $('error').textContent='Digite um e-mail válido.';return }
-  $('submit').disabled=true;$('submit').textContent='Enviando…';
-  const {error}=await supabase.auth.signInWithOtp({email:v,options:{emailRedirectTo:window.location.origin+'/' }});
-  if(error){$('error').textContent=error.message;$('submit').disabled=false;$('submit').textContent='Enviar verificação por e-mail';return}
-  $('authTitle').textContent='Verifique seu e-mail';$('authText').textContent='Enviamos um link de acesso para '+v+'. Abra o e-mail e toque no link.';
-  $('email').classList.add('hidden');$('submit').classList.add('hidden');$('status').classList.remove('hidden');$('status').textContent='Depois de confirmar o e-mail, esta página será desbloqueada automaticamente.';
-};
-auth();
+
+/* =========================================================
+   COOKIE
+========================================================= */
+
+function setAuthCookie(token, expiresAt) {
+  const maxAge = Math.max(
+    60,
+    Math.floor((expiresAt - Date.now()) / 1000)
+  );
+  document.cookie =
+    'hp_auth=' + encodeURIComponent(token) +
+    '; Path=/; SameSite=Lax; Max-Age=' + maxAge;
+}
+
+function clearAuthCookie() {
+  document.cookie = 'hp_auth=; Path=/; Max-Age=0; SameSite=Lax';
+}
+
+/* =========================================================
+   NORMALIZAR URL
+========================================================= */
+
+const HOST_RE =
+  /^(?:localhost|\[[0-9a-f:.]+\]|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{1,5})?(?:[/?#]\S*)?$/i;
+
+function normalize(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const url = new URL(raw);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      return url.toString();
+    } catch {
+      return null;
+    }
+  }
+
+  if (HOST_RE.test(raw)) {
+    try {
+      return new URL('https://' + raw).toString();
+    } catch {
+      return null;
+    }
+  }
+
+  return 'https://www.google.com/search?q=' + encodeURIComponent(raw);
+}
+
+/* =========================================================
+   NAVEGAR — manda pro Rammerhead
+========================================================= */
+
+function navigateToUrl(value) {
+  const target = normalize(value);
+  if (!target) {
+    setStatus('Endereço inválido', true);
+    return;
+  }
+
+  setStatus('Abrindo · ' + target);
+
+  window.location.href =
+    'https://' + RAMMERHEAD_HOST + '/' +
+    encodeURIComponent(target);
+}
+
+/* =========================================================
+   BOTÕES
+========================================================= */
+
+function go() { navigateToUrl(urlInput.value); }
+
+goButton.addEventListener('click', go);
+
+urlInput.addEventListener('keydown', event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    go();
+  }
+});
+
+backButton.addEventListener('click', () => history.back());
+forwardButton.addEventListener('click', () => history.forward());
+reloadButton.addEventListener('click', () => window.location.reload());
+
+/* =========================================================
+   ATALHOS
+========================================================= */
+
+document.addEventListener('keydown', event => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'l') {
+    event.preventDefault();
+    urlInput.focus();
+    urlInput.select();
+    return;
+  }
+
+  if (event.altKey && event.key === 'ArrowLeft') {
+    event.preventDefault();
+    history.back();
+    return;
+  }
+
+  if (event.altKey && event.key === 'ArrowRight') {
+    event.preventDefault();
+    history.forward();
+    return;
+  }
+});
+
+/* =========================================================
+   NOVA ABA
+========================================================= */
+
+function openExternal() {
+  const target = normalize(urlInput.value);
+  if (!target) {
+    setStatus('Endereço inválido', true);
+    return;
+  }
+
+  window.open(
+    'https://' + RAMMERHEAD_HOST + '/' + encodeURIComponent(target),
+    '_blank',
+    'noopener,noreferrer'
+  );
+}
+
+openTabButton.addEventListener('click', openExternal);
+
+/* =========================================================
+   AUTH — STORAGE
+========================================================= */
+
+function readAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeAuth(auth) {
+  try { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); } catch {}
+}
+
+function clearAuth() {
+  try { localStorage.removeItem(AUTH_KEY); } catch {}
+}
+
+/* =========================================================
+   HASH — LINK MÁGICO
+========================================================= */
+
+function cleanHash() {
+  if (!window.location.hash) return;
+  history.replaceState(
+    null, '',
+    window.location.pathname + window.location.search
+  );
+}
+
+function consumeAuthHash() {
+  const hash = window.location.hash || '';
+  if (hash.length < 2) return null;
+
+  const params = new URLSearchParams(hash.slice(1));
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  const expiresIn = Number(params.get('expires_in')) || 3600;
+  const error = params.get('error_description') || params.get('error');
+
+  cleanHash();
+
+  if (error) {
+    return { error: decodeURIComponent(error.replace(/\+/g, ' ')) };
+  }
+
+  if (!accessToken) return null;
+
+  const auth = {
+    access_token: accessToken,
+    refresh_token: refreshToken || null,
+    expires_at: Date.now() + expiresIn * 1000
+  };
+
+  writeAuth(auth);
+  setAuthCookie(auth.access_token, auth.expires_at);
+
+  return auth;
+}
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+async function fetchUser(accessToken) {
+  const response = await fetch(SUPABASE_URL + '/auth/v1/user', {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + accessToken
+    }
+  });
+  if (!response.ok) return null;
+  const user = await response.json().catch(() => null);
+  return (user && user.email) ? user : null;
+}
+
+async function refreshSession(refreshToken) {
+  const response = await fetch(
+    SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token',
+    {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    }
+  );
+  if (!response.ok) return null;
+  const data = await response.json().catch(() => null);
+  if (!data || !data.access_token) return null;
+
+  const auth = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || refreshToken,
+    expires_at: Date.now() + (data.expires_in || 3600) * 1000
+  };
+  writeAuth(auth);
+  setAuthCookie(auth.access_token, auth.expires_at);
+  return auth;
+}
+
+async function getSession() {
+  let auth = readAuth();
+  if (!auth || !auth.access_token) return null;
+
+  const expired =
+    auth.expires_at &&
+    Date.now() > auth.expires_at - SESSION_SKEW_MS;
+
+  if (expired) {
+    if (!auth.refresh_token) { clearAuth(); return null; }
+    auth = await refreshSession(auth.refresh_token);
+    if (!auth) { clearAuth(); return null; }
+  }
+
+  const user = await fetchUser(auth.access_token);
+  if (!user) { clearAuth(); return null; }
+
+  return user;
+}
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+async function sendLoginLink() {
+  const email = emailInput.value.trim().toLowerCase();
+
+  if (!email) {
+    loginMessage.textContent = 'Digite seu e-mail.';
+    loginMessage.className = 'login-message error';
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    loginMessage.textContent = 'Digite um e-mail válido.';
+    loginMessage.className = 'login-message error';
+    return;
+  }
+
+  loginButton.disabled = true;
+  loginButton.textContent = 'Enviando...';
+  loginMessage.textContent = 'Enviando link de acesso...';
+  loginMessage.className = 'login-message';
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const redirectTo = window.location.origin + '/';
+
+    const response = await fetch(
+      SUPABASE_URL + '/auth/v1/otp?redirect_to=' +
+        encodeURIComponent(redirectTo),
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, create_user: true }),
+        signal: controller.signal
+      }
+    );
+
+    let data = {};
+    try { data = await response.json(); } catch {}
+
+    if (!response.ok) {
+      throw new Error(
+        data.msg || data.message ||
+        data.error_description ||
+        'Não foi possível enviar o e-mail.'
+      );
+    }
+
+    loginMessage.textContent =
+      'Link enviado! Verifique seu e-mail e toque no link para entrar.';
+    loginMessage.className = 'login-message success';
+
+  } catch (error) {
+    loginMessage.textContent =
+      error.name === 'AbortError'
+        ? 'A solicitação demorou demais. Tente novamente.'
+        : (error.message || 'Erro ao enviar o link.');
+    loginMessage.className = 'login-message error';
+  } finally {
+    clearTimeout(timeout);
+    loginButton.disabled = false;
+    loginButton.textContent = 'Enviar link de acesso';
+  }
+}
+
+loginButton.addEventListener('click', sendLoginLink);
+
+emailInput.addEventListener('keydown', event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    sendLoginLink();
+  }
+});
+
+/* =========================================================
+   ENTRAR / SAIR
+========================================================= */
+
+function showLoggedUser(email) {
+  loggedIn = true;
+  loginOverlay.classList.add('hidden');
+  accountEmail.textContent = email;
+  accountAvatar.textContent = email.charAt(0).toUpperCase();
+  setTimeout(() => urlInput.focus(), 200);
+}
+
+function showLogin(message = '', type = '') {
+  loggedIn = false;
+  loginOverlay.classList.remove('hidden');
+
+  if (message) {
+    loginMessage.textContent = message;
+    loginMessage.className = 'login-message' + (type ? ' ' + type : '');
+  }
+  setTimeout(() => emailInput.focus(), 200);
+}
+
+async function logout() {
+  const auth = readAuth();
+  clearAuth();
+  clearAuthCookie();
+  loggedIn = false;
+  accountEmail.textContent = '—';
+  accountAvatar.textContent = '?';
+
+  if (auth && auth.access_token) {
+    fetch(SUPABASE_URL + '/auth/v1/logout', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: 'Bearer ' + auth.access_token
+      }
+    }).catch(() => {});
+  }
+
+  showLogin();
+}
+
+function handleAccountAction() {
+  if (!loggedIn) return;
+  if (window.confirm('Sair da conta?')) logout();
+}
+
+account.addEventListener('click', handleAccountAction);
+account.addEventListener('keydown', event => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    handleAccountAction();
+  }
+});
+
+/* =========================================================
+   INIT
+========================================================= */
+
+(async function init() {
+  setStatus('Pronto · Rammerhead via 3proxy');
+
+  urlInput.value = 'https://example.com';
+
+  const hashResult = consumeAuthHash();
+
+  let user = null;
+  try { user = await getSession(); } catch { user = null; }
+
+  if (user) {
+    showLoggedUser(user.email);
+    return;
+  }
+
+  if (hashResult && hashResult.error) {
+    showLogin(hashResult.error, 'error');
+    return;
+  }
+
+  showLogin();
+})();
 </script>
+
 </body>
 </html>
