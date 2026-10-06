@@ -1,960 +1,1007 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="color-scheme" content="dark">
-  <title>Helpful Pigeon</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helpful Pigeon — Mundo Infinito Online</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0b0f14;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#e8eef5;
+    -webkit-user-select:none;user-select:none;}
+  canvas{display:block;position:absolute;inset:0;cursor:crosshair;}
 
-  <style>
-    * { box-sizing: border-box; }
+  /* ---------- HUD ---------- */
+  #hud{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;}
+  #hud.on{opacity:1;}
+  #topbar{position:absolute;top:12px;left:12px;display:flex;gap:8px;flex-wrap:wrap;}
+  .pill{background:rgba(8,14,22,.66);border:1px solid rgba(255,255,255,.10);
+    padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;
+    backdrop-filter:blur(6px);letter-spacing:.3px;}
+  .pill b{color:#7ee0a0;}
 
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #08080c;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+  #hotbar{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+    display:flex;gap:6px;padding:7px;border-radius:12px;
+    background:rgba(8,14,22,.62);border:1px solid rgba(255,255,255,.10);
+    backdrop-filter:blur(6px);}
+  .slot{width:46px;height:46px;border-radius:8px;position:relative;
+    border:2px solid rgba(255,255,255,.16);box-shadow:inset 0 -14px 18px rgba(0,0,0,.35);
+    transition:transform .08s,border-color .08s;}
+  .slot.sel{border-color:#7ee0a0;transform:translateY(-6px) scale(1.06);
+    box-shadow:0 0 14px rgba(126,224,160,.5),inset 0 -14px 18px rgba(0,0,0,.35);}
+  .slot .key{position:absolute;top:2px;left:5px;font-size:10px;font-weight:800;
+    color:rgba(255,255,255,.85);text-shadow:0 1px 2px #000;}
 
-    button, input { font: inherit; }
-    button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  #hint{position:absolute;bottom:82px;left:50%;transform:translateX(-50%);
+    font-size:12.5px;color:rgba(255,255,255,.62);text-align:center;
+    background:rgba(8,14,22,.5);padding:6px 14px;border-radius:8px;
+    transition:opacity .6s;white-space:nowrap;}
 
-    .app {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      background: #09090e;
-    }
-
-    /* HEADER */
-    .header {
-      height: 76px;
-      min-height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 22px;
-      border-bottom: 1px solid #272730;
-      background: #101015;
-    }
-
-    .brand { display: flex; align-items: center; gap: 13px; }
-
-    .logo {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      object-fit: cover;
-      background: #7c3aed;
-    }
-
-    .brand-text { display: flex; flex-direction: column; gap: 2px; }
-
-    .brand-title {
-      font-size: 21px;
-      font-weight: 750;
-      letter-spacing: -0.4px;
-    }
-
-    .brand-subtitle { color: #8d8d99; font-size: 13px; }
-
-    .account {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      border-radius: 12px;
-      outline: none;
-    }
-
-    .account:focus-visible { box-shadow: 0 0 0 2px #7c3aed; }
-
-    .account-avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #272731;
-      color: #ddd;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    .account-email {
-      background: #fff;
-      color: #17171c;
-      border-radius: 12px;
-      padding: 11px 15px;
-      font-size: 14px;
-      font-weight: 650;
-      max-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* BROWSER BAR */
-    .browser {
-      padding: 12px 20px 8px;
-      background: #0b0b10;
-      border-bottom: 1px solid #202027;
-    }
-
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nav-buttons { display: flex; gap: 5px; }
-
-    .nav-button {
-      width: 40px;
-      height: 40px;
-      border: 0;
-      background: transparent;
-      color: #aaaab5;
-      border-radius: 10px;
-      font-size: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .nav-button:hover:not(:disabled) { background: #181820; color: #fff; }
-    .nav-button:disabled { opacity: .3; cursor: default; }
-
-    .address-wrap {
-      flex: 1;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      background: #17171f;
-      border: 1px solid #2b2b36;
-      border-radius: 14px;
-      padding: 0 14px;
-      min-width: 0;
-    }
-
-    .secure-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #5ee28a;
-      margin-right: 12px;
-      flex-shrink: 0;
-      box-shadow: 0 0 12px rgba(94, 226, 138, .25);
-    }
-
-    #url {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      color: #f4f4f7;
-      font-size: 17px;
-      min-width: 0;
-    }
-
-    #url::selection { background: #6841c7; }
-
-    .go-button {
-      height: 50px;
-      min-width: 60px;
-      border: 0;
-      border-radius: 14px;
-      background: #f4f4f5;
-      color: #15151a;
-      font-size: 20px;
-      font-weight: 800;
-      cursor: pointer;
-      padding: 0 18px;
-      touch-action: manipulation;
-    }
-
-    .go-button:active { transform: scale(.97); }
-
-    .status {
-      height: 30px;
-      display: flex;
-      align-items: center;
-      color: #777783;
-      font-size: 13px;
-      padding-left: 5px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #5ee28a;
-      margin-right: 8px;
-      flex-shrink: 0;
-    }
-
-    .status.error .status-dot { background: #ff8181; }
-    .status.error { color: #ff8181; }
-
-    /* CONTENT */
-    .content {
-      flex: 1;
-      min-height: 0;
-      position: relative;
-      background: radial-gradient(circle at 50% 35%, #20202b 0, #0b0b10 48%, #08080c 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 30px;
-    }
-
-    .welcome {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      text-align: center;
-      max-width: 560px;
-      width: 100%;
-    }
-
-    .welcome-logo {
-      width: 100px;
-      height: 100px;
-      border-radius: 28px;
-      object-fit: cover;
-      margin-bottom: 22px;
-    }
-
-    .welcome h1 { margin: 0 0 10px; font-size: 30px; }
-
-    .welcome p {
-      margin: 0;
-      color: #898994;
-      max-width: 500px;
-      line-height: 1.5;
-    }
-
-    .open-tab {
-      margin-top: 24px;
-      padding: 13px 20px;
-      border: 1px solid #34343e;
-      border-radius: 12px;
-      background: #17171f;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 650;
-      touch-action: manipulation;
-    }
-
-    .open-tab:hover { background: #1d1d26; }
-
-    .hint {
-      margin-top: 18px;
-      font-size: 12px;
-      color: #5d5d68;
-      line-height: 1.6;
-    }
-
-    .hint kbd {
-      background: #17171f;
-      border: 1px solid #2b2b36;
-      border-radius: 6px;
-      padding: 2px 6px;
-      font-family: ui-monospace, Menlo, monospace;
-      font-size: 11px;
-      color: #bbb;
-    }
-
-    /* LOGIN */
-    .login-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(0, 0, 0, .72);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-    }
-
-    .login-overlay.hidden { display: none; }
-
-    .login-card {
-      width: min(430px, 100%);
-      background: #15151c;
-      border: 1px solid #30303a;
-      border-radius: 22px;
-      padding: 30px;
-      box-shadow: 0 30px 100px rgba(0,0,0,.55);
-    }
-
-    .login-logo {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
-      object-fit: cover;
-      margin-bottom: 18px;
-    }
-
-    .login-card h2 { margin: 0 0 8px; font-size: 25px; }
-
-    .login-card p {
-      margin: 0 0 22px;
-      color: #91919d;
-      line-height: 1.45;
-      font-size: 14px;
-    }
-
-    .email-input {
-      width: 100%;
-      height: 50px;
-      border-radius: 12px;
-      border: 1px solid #34343f;
-      background: #0e0e14;
-      color: #fff;
-      outline: none;
-      padding: 0 15px;
-      font-size: 16px;
-    }
-
-    .email-input:focus { border-color: #7c3aed; }
-
-    .login-button {
-      width: 100%;
-      height: 50px;
-      margin-top: 12px;
-      border: 0;
-      border-radius: 12px;
-      background: #7c3aed;
-      color: #fff;
-      font-weight: 750;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .login-button:disabled { opacity: .6; cursor: default; }
-
-    .login-message {
-      min-height: 22px;
-      margin-top: 14px;
-      color: #8f8f9b;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .login-message.error { color: #ff8181; }
-    .login-message.success { color: #64df91; }
-
-    /* MOBILE */
-    @media (max-width: 700px) {
-      .header { height: 68px; min-height: 68px; padding: 10px 14px; }
-      .logo { width: 42px; height: 42px; }
-      .brand-title { font-size: 18px; }
-      .brand-subtitle { font-size: 11px; }
-      .account-avatar { display: none; }
-      .account-email { max-width: 120px; font-size: 12px; padding: 9px 10px; }
-      .browser { padding: 9px 9px 5px; }
-      .toolbar { gap: 5px; }
-      .nav-buttons { gap: 0; }
-      .nav-button { width: 34px; height: 42px; }
-      .address-wrap { height: 46px; padding: 0 10px; }
-      #url { font-size: 15px; }
-      .secure-dot { width: 9px; height: 9px; margin-right: 8px; }
-      .go-button { height: 46px; min-width: 50px; padding: 0 12px; font-size: 17px; }
-      .status { height: 27px; font-size: 11px; }
-    }
-  </style>
+  /* ---------- MENU ---------- */
+  #menu{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(1200px 700px at 50% 20%,#16324a 0%,#080d13 70%);
+    z-index:10;transition:opacity .35s;}
+  #menu.hide{opacity:0;pointer-events:none;}
+  .panel{width:min(92vw,400px);background:rgba(12,20,30,.92);
+    border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:30px 26px;
+    box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center;}
+  .panel h1{font-size:31px;letter-spacing:-.5px;margin-bottom:4px;
+    background:linear-gradient(92deg,#8ee7ff,#7ee0a0 55%,#ffe082);
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{font-size:12.5px;color:#8ba0b6;margin-bottom:22px;letter-spacing:.4px;}
+  input{width:100%;padding:12px 14px;border-radius:11px;font-size:15px;
+    background:#0a121c;border:1px solid rgba(255,255,255,.13);color:#e8eef5;
+    outline:none;margin-bottom:10px;text-align:center;font-weight:600;letter-spacing:1px;}
+  input:focus{border-color:#7ee0a0;box-shadow:0 0 0 3px rgba(126,224,160,.14);}
+  input::placeholder{color:#54677c;letter-spacing:normal;font-weight:400;}
+  button{width:100%;padding:12px;border-radius:11px;font-size:15px;font-weight:700;
+    cursor:pointer;border:none;transition:transform .1s,filter .15s;letter-spacing:.3px;}
+  button:active{transform:scale(.975);}
+  #hostBtn{background:linear-gradient(180deg,#3fc47a,#2a9a5c);color:#04160c;
+    box-shadow:0 6px 20px rgba(63,196,122,.28);}
+  #joinBtn{background:linear-gradient(180deg,#4f9fe0,#2f74b0);color:#03121f;
+    box-shadow:0 6px 20px rgba(79,159,224,.24);}
+  button:hover{filter:brightness(1.10);}
+  button:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+  .or{font-size:11px;color:#54677c;margin:14px 0 12px;letter-spacing:2px;}
+  #status{margin-top:14px;font-size:12.5px;color:#8ba0b6;min-height:18px;line-height:1.5;}
+  #status.ok{color:#7ee0a0;}
+  #status.err{color:#ff8a8a;}
+  .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:21px;
+    font-weight:800;color:#ffe082;letter-spacing:4px;
+    background:#0a121c;border:1px dashed rgba(255,224,130,.4);border-radius:10px;
+    padding:10px;margin:10px 0;user-select:all;}
+  .small{font-size:11px;color:#54677c;margin-top:14px;line-height:1.6;}
+</style>
 </head>
-
 <body>
 
-<div class="app">
+<canvas id="game"></canvas>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="brand">
-      <img src="/pigeon.png" class="logo" alt="Helpful Pigeon">
-      <div class="brand-text">
-        <div class="brand-title">Helpful Pigeon</div>
-        <div class="brand-subtitle">Private browsing workspace</div>
-      </div>
-    </div>
-
-    <div class="account" id="account" role="button" tabindex="0" title="Sair">
-      <div class="account-avatar" id="accountAvatar">?</div>
-      <div class="account-email" id="accountEmail">—</div>
-    </div>
-  </header>
-
-  <!-- BROWSER BAR -->
-  <section class="browser">
-    <div class="toolbar">
-      <div class="nav-buttons">
-        <button class="nav-button" id="backButton" type="button" aria-label="Voltar" disabled>‹</button>
-        <button class="nav-button" id="forwardButton" type="button" aria-label="Avançar" disabled>›</button>
-        <button class="nav-button" id="reloadButton" type="button" aria-label="Recarregar">↻</button>
-      </div>
-
-      <div class="address-wrap">
-        <div class="secure-dot"></div>
-        <input
-          id="url"
-          type="text"
-          value=""
-          autocomplete="off"
-          autocapitalize="none"
-          spellcheck="false"
-          inputmode="url"
-          aria-label="Endereço"
-          placeholder="Digite um endereço e pressione Enter"
-        >
-      </div>
-
-      <button class="go-button" id="goButton" type="button">Ir</button>
-    </div>
-
-    <div class="status" id="statusBar">
-      <span class="status-dot"></span>
-      <span id="proxyStatus">Pronto · Rammerhead via 3proxy</span>
-    </div>
-  </section>
-
-  <!-- CONTENT -->
-  <main class="content">
-    <div class="welcome" id="welcome">
-      <img src="/pigeon.png" class="welcome-logo" alt="">
-      <h1>Helpful Pigeon</h1>
-      <p>
-        Digite um endereço acima e pressione <b>Enter</b>.<br>
-        A página será aberta pelo gateway Rammerhead.
-      </p>
-
-      <button class="open-tab" id="openTabButton" type="button">
-        Abrir em nova aba
-      </button>
-
-      <div class="hint">
-        Atalhos: <kbd>Ctrl</kbd>+<kbd>L</kbd> foca a barra ·
-        <kbd>Alt</kbd>+<kbd>←</kbd> volta ·
-        <kbd>Alt</kbd>+<kbd>→</kbd> avança
-      </div>
-    </div>
-  </main>
-
+<div id="hud">
+  <div id="topbar">
+    <div class="pill" id="roomInfo">Sala: <b>—</b></div>
+    <div class="pill" id="playerCount">👥 1</div>
+    <div class="pill" id="coords">0, 0</div>
+  </div>
+  <div id="hotbar"></div>
+  <div id="hint">A / D mover · Espaço pular · Clique esq. minerar · Clique dir. colocar · 1-9 selecionar</div>
 </div>
 
-<!-- LOGIN -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-card">
-    <img src="/pigeon.png" class="login-logo" alt="Helpful Pigeon">
-    <h2>Entrar no Helpful Pigeon</h2>
-    <p>
-      Digite seu e-mail para receber um link de acesso.
-      Não é necessário criar uma senha.
-    </p>
-
-    <input
-      class="email-input"
-      id="emailInput"
-      type="email"
-      placeholder="seu@email.com"
-      autocomplete="email"
-      autocapitalize="none"
-      spellcheck="false"
-    >
-
-    <button class="login-button" id="loginButton" type="button">
-      Enviar link de acesso
-    </button>
-
-    <div class="login-message" id="loginMessage"></div>
+<div id="menu">
+  <div class="panel">
+    <h1>Helpful Pigeon</h1>
+    <p class="sub">MUNDO INFINITO · MULTIJOGADOR ONLINE</p>
+    <input id="nameInput" maxlength="12" placeholder="Seu nome">
+    <button id="hostBtn">Criar mundo (Host)</button>
+    <div class="or">— OU —</div>
+    <input id="codeInput" maxlength="6" placeholder="CÓDIGO DA SALA">
+    <button id="joinBtn">Entrar no mundo</button>
+    <div id="status"></div>
+    <div class="small">Todos os jogadores compartilham o mesmo mundo,
+      o mesmo terreno e as mesmas construções.</div>
   </div>
 </div>
 
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-/* =========================================================
-   CONFIG
-========================================================= */
-
-const SUPABASE_URL = 'https://yrbtgsaabzemlnwmkpjo.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_trBeCPUWk7Le7ykK8pXibQ_iDYkvUKC';
-const AUTH_KEY = 'hp_auth_v1';
-const SESSION_SKEW_MS = 60 * 1000;
-const RAMMERHEAD_HOST = 'rh.helpful-pigeon-proxy.com';
+(function(){
+'use strict';
 
 /* =========================================================
-   ELEMENTOS
-========================================================= */
+   1. CONSTANTES
+   ========================================================= */
+const TILE        = 32;
+const CHUNK       = 16;
+const SEA_LEVEL   = 130;
+const WORLD_BOTTOM= 360;
+const REACH       = 6;
+const GRAVITY     = 46;
+const MOVE_SPEED  = 6.4;
+const JUMP_VEL    = 13.5;
+const MAX_FALL    = 38;
 
-const $ = id => document.getElementById(id);
+const BLOCKS = [
+  {n:'Ar',       c:'#000000', solid:false},
+  {n:'Terra',    c:'#7b5433', solid:true },
+  {n:'Grama',    c:'#4fa64f', solid:true },
+  {n:'Pedra',    c:'#7c7f85', solid:true },
+  {n:'Madeira',  c:'#6b4a2b', solid:true },
+  {n:'Folhas',   c:'#2f7d3a', solid:true },
+  {n:'Areia',    c:'#ddc47e', solid:true },
+  {n:'Carvão',   c:'#3b3b3b', solid:true },
+  {n:'Ferro',    c:'#b58a63', solid:true },
+  {n:'Ouro',     c:'#d9b23c', solid:true },
+  {n:'Diamante', c:'#57e0e6', solid:true },
+  {n:'Tábuas',   c:'#a8763f', solid:true },
+  {n:'Vidro',    c:'#9fd4e8', solid:true },
+  {n:'Bedrock',  c:'#2a2a2e', solid:true }
+];
 
-const urlInput      = $('url');
-const goButton      = $('goButton');
-const backButton    = $('backButton');
-const forwardButton = $('forwardButton');
-const reloadButton  = $('reloadButton');
-const statusBar     = $('statusBar');
-const proxyStatus   = $('proxyStatus');
-const loginOverlay  = $('loginOverlay');
-const loginButton   = $('loginButton');
-const emailInput    = $('emailInput');
-const loginMessage  = $('loginMessage');
-const account       = $('account');
-const accountEmail  = $('accountEmail');
-const accountAvatar = $('accountAvatar');
-const openTabButton = $('openTabButton');
+const HARDNESS = [0,0.15,0.18,0.45,0.35,0.10,0.15,0.70,0.95,1.15,1.50,0.35,0.30,Infinity];
+
+const HOTBAR = [2,1,3,6,4,5,11,12,10];
 
 /* =========================================================
-   ESTADO
-========================================================= */
-
-let loggedIn = false;
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function setStatus(text, isError = false) {
-  proxyStatus.textContent = text;
-  statusBar.classList.toggle('error', !!isError);
+   2. RUÍDO PROCEDURAL
+   ========================================================= */
+function hash1(x, s){
+  let n = Math.imul(x|0, 374761393) + Math.imul(s|0, 668265263);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  n = n ^ (n >>> 16);
+  return (n >>> 0) / 4294967296;
+}
+function noise1(x, s){
+  const i = Math.floor(x), f = x - i;
+  const u = f*f*(3-2*f);
+  const a = hash1(i, s)*2-1;
+  const b = hash1(i+1, s)*2-1;
+  return a + (b-a)*u;
+}
+function hash2(x, y, s){
+  let n = Math.imul(x|0, 374761393) + Math.imul(y|0, 668265263) + Math.imul(s|0, 1013904223);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  n = n ^ (n >>> 16);
+  return (n >>> 0) / 4294967296;
+}
+function noise2(x, y, s){
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf*xf*(3-2*xf), v = yf*yf*(3-2*yf);
+  const a = hash2(xi, yi, s),     b = hash2(xi+1, yi, s);
+  const c = hash2(xi, yi+1, s),   d = hash2(xi+1, yi+1, s);
+  return (a*(1-u)+b*u)*(1-v) + (c*(1-u)+d*u)*v;
 }
 
 /* =========================================================
-   COOKIE
-========================================================= */
+   3. MUNDO
+   ========================================================= */
+let worldSeed = Math.floor(Math.random()*1000000);
+const chunks = new Map();
+const surfaceCache = new Map();
 
-function setAuthCookie(token, expiresAt) {
-  const maxAge = Math.max(
-    60,
-    Math.floor((expiresAt - Date.now()) / 1000)
-  );
-  document.cookie =
-    'hp_auth=' + encodeURIComponent(token) +
-    '; Path=/; SameSite=Lax; Max-Age=' + maxAge;
+function computeSurface(x){
+  let h = 0;
+  h += noise1(x*0.0060, worldSeed)        * 46;
+  h += noise1(x*0.0250, worldSeed + 77)   * 13;
+  h += noise1(x*0.1100, worldSeed + 131)  * 3;
+  return Math.floor(SEA_LEVEL - h);
+}
+function getSurface(x){
+  let v = surfaceCache.get(x);
+  if(v === undefined){ v = computeSurface(x); surfaceCache.set(x, v); }
+  return v;
 }
 
-function clearAuthCookie() {
-  document.cookie = 'hp_auth=; Path=/; Max-Age=0; SameSite=Lax';
+function setLocal(tiles, bx, by, wx, wy, v){
+  const lx = wx - bx, ly = wy - by;
+  if(lx < 0 || lx >= CHUNK || ly < 0 || ly >= CHUNK) return;
+  tiles[ly*CHUNK + lx] = v;
 }
 
-/* =========================================================
-   NORMALIZAR URL
-========================================================= */
+function generateChunk(cx, cy){
+  const tiles = new Uint8Array(CHUNK*CHUNK);
+  const bx = cx*CHUNK, by = cy*CHUNK;
 
-const HOST_RE =
-  /^(?:localhost|\[[0-9a-f:.]+\]|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{1,5})?(?:[/?#]\S*)?$/i;
+  for(let lx = 0; lx < CHUNK; lx++){
+    const wx = bx + lx;
+    const sh = getSurface(wx);
+    for(let ly = 0; ly < CHUNK; ly++){
+      const wy = by + ly;
+      let t = 0;
 
-function normalize(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
+      if(wy >= WORLD_BOTTOM){
+        t = 13;
+      } else if(wy > sh){
+        const depth = wy - sh;
+        t = (depth < 4) ? ((sh >= SEA_LEVEL - 1) ? 6 : 1) : 3;
 
-  if (/^https?:\/\//i.test(raw)) {
-    try {
-      const url = new URL(raw);
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-      return url.toString();
-    } catch {
-      return null;
+        // cavernas
+        if(depth > 5){
+          const c1 = noise2(wx*0.055, wy*0.055, worldSeed + 911);
+          const c2 = noise2(wx*0.110, wy*0.110, worldSeed + 353);
+          if(c1 > 0.60 && c2 > 0.42) t = 0;
+        }
+        // minérios
+        if(t === 3){
+          const r = hash2(wx, wy, worldSeed + 5555);
+          if      (depth > 70 && r > 0.9955) t = 10;
+          else if (depth > 45 && r > 0.9905) t = 9;
+          else if (depth > 22 && r > 0.9780) t = 8;
+          else if (depth > 10 && r > 0.9600) t = 7;
+        }
+      } else if(wy === sh){
+        t = (sh >= SEA_LEVEL - 1) ? 6 : 2;
+      }
+
+      tiles[ly*CHUNK + lx] = t;
     }
   }
 
-  if (HOST_RE.test(raw)) {
-    try {
-      return new URL('https://' + raw).toString();
-    } catch {
-      return null;
+  /* --- árvores (podem atravessar a borda do chunk) --- */
+  for(let wx = bx - 3; wx < bx + CHUNK + 3; wx++){
+    if(hash1(wx, worldSeed + 4242) < 0.905) continue;
+    const sh = getSurface(wx);
+    if(sh >= SEA_LEVEL - 1) continue;
+
+    const trunkH = 4 + Math.floor(hash1(wx, worldSeed + 77) * 3);
+    const topY = sh - trunkH;
+
+    for(let dy = -2; dy <= 1; dy++){
+      for(let dx = -2; dx <= 2; dx++){
+        if(Math.abs(dx) === 2 && (dy === -2 || dy === 1)) continue;
+        setLocal(tiles, bx, by, wx + dx, topY + dy, 5);
+      }
+    }
+    for(let y = sh - 1; y >= topY; y--) setLocal(tiles, bx, by, wx, y, 4);
+  }
+
+  return tiles;
+}
+
+function getChunk(cx, cy){
+  const k = cx + ',' + cy;
+  let c = chunks.get(k);
+  if(!c){ c = generateChunk(cx, cy); chunks.set(k, c); }
+  return c;
+}
+function getTile(x, y){
+  if(y < 0) return 0;
+  if(y >= WORLD_BOTTOM) return 13;
+  const cx = Math.floor(x / CHUNK), cy = Math.floor(y / CHUNK);
+  const c = getChunk(cx, cy);
+  return c[(y - cy*CHUNK)*CHUNK + (x - cx*CHUNK)];
+}
+function setTile(x, y, v){
+  if(y < 0 || y >= WORLD_BOTTOM) return;
+  const cx = Math.floor(x / CHUNK), cy = Math.floor(y / CHUNK);
+  const c = getChunk(cx, cy);
+  c[(y - cy*CHUNK)*CHUNK + (x - cx*CHUNK)] = v;
+}
+function isSolid(x, y){
+  if(y < 0) return false;
+  const t = getTile(x, y);
+  return t !== 0 && BLOCKS[t].solid;
+}
+function clearWorld(){
+  chunks.clear();
+  surfaceCache.clear();
+}
+
+/* =========================================================
+   4. JOGADOR
+   ========================================================= */
+const player = {
+  x: 0, y: 0, vx: 0, vy: 0,
+  w: 0.62, h: 1.8,
+  onGround: false, flip: 1,
+  name: 'Jogador', color: '#4fa3e0'
+};
+
+function respawn(){
+  player.x = 0;
+  player.y = getSurface(0);
+  player.vx = 0; player.vy = 0;
+}
+
+function collideX(p){
+  const half = p.w/2;
+  const x0 = Math.floor(p.x - half + 1e-6);
+  const x1 = Math.floor(p.x + half - 1e-6);
+  const y0 = Math.floor(p.y - p.h + 1e-6);
+  const y1 = Math.floor(p.y - 1e-6);
+  for(let ty = y0; ty <= y1; ty++){
+    for(let tx = x0; tx <= x1; tx++){
+      if(!isSolid(tx, ty)) continue;
+      if(p.vx > 0)      p.x = tx - half - 1e-4;
+      else if(p.vx < 0) p.x = tx + 1 + half + 1e-4;
+      p.vx = 0;
+      return;
     }
   }
-
-  return 'https://www.google.com/search?q=' + encodeURIComponent(raw);
+}
+function collideY(p){
+  const half = p.w/2;
+  const x0 = Math.floor(p.x - half + 1e-6);
+  const x1 = Math.floor(p.x + half - 1e-6);
+  const y0 = Math.floor(p.y - p.h + 1e-6);
+  const y1 = Math.floor(p.y - 1e-6);
+  p.onGround = false;
+  for(let ty = y0; ty <= y1; ty++){
+    for(let tx = x0; tx <= x1; tx++){
+      if(!isSolid(tx, ty)) continue;
+      if(p.vy > 0){ p.y = ty - 1e-4; p.vy = 0; p.onGround = true; }
+      else if(p.vy < 0){ p.y = ty + 1 + p.h + 1e-4; p.vy = 0; }
+      return;
+    }
+  }
 }
 
 /* =========================================================
-   NAVEGAR — manda pro Rammerhead
-========================================================= */
+   5. REDE (PeerJS)
+   ========================================================= */
+const net = {
+  peer: null,
+  isHost: false,
+  conns: [],           // host: lista de clientes | cliente: [conexão com host]
+  roomCode: '',
+  myId: '',
+  players: new Map(),  // id -> {x,y,flip,name,color}
+  edits: new Map()     // "x,y" -> id do bloco (histórico do host)
+};
 
-function navigateToUrl(value) {
-  const target = normalize(value);
-  if (!target) {
-    setStatus('Endereço inválido', true);
-    return;
-  }
+let state = 'menu';    // menu | connecting | playing
 
-  setStatus('Abrindo · ' + target);
-
-  window.location.href =
-    'https://' + RAMMERHEAD_HOST + '/' +
-    encodeURIComponent(target);
+function makeCode(){
+  const s = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for(let i = 0; i < 4; i++) c += s[Math.floor(Math.random()*s.length)];
+  return c;
 }
+function peerIdFor(code){ return 'helpfulpigeon-' + code.toLowerCase(); }
 
-/* =========================================================
-   BOTÕES
-========================================================= */
-
-function go() { navigateToUrl(urlInput.value); }
-
-goButton.addEventListener('click', go);
-
-urlInput.addEventListener('keydown', event => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    go();
-  }
-});
-
-backButton.addEventListener('click', () => history.back());
-forwardButton.addEventListener('click', () => history.forward());
-reloadButton.addEventListener('click', () => window.location.reload());
-
-/* =========================================================
-   ATALHOS
-========================================================= */
-
-document.addEventListener('keydown', event => {
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'l') {
-    event.preventDefault();
-    urlInput.focus();
-    urlInput.select();
-    return;
-  }
-
-  if (event.altKey && event.key === 'ArrowLeft') {
-    event.preventDefault();
-    history.back();
-    return;
-  }
-
-  if (event.altKey && event.key === 'ArrowRight') {
-    event.preventDefault();
-    history.forward();
-    return;
-  }
-});
-
-/* =========================================================
-   NOVA ABA
-========================================================= */
-
-function openExternal() {
-  const target = normalize(urlInput.value);
-  if (!target) {
-    setStatus('Endereço inválido', true);
-    return;
-  }
-
-  window.open(
-    'https://' + RAMMERHEAD_HOST + '/' + encodeURIComponent(target),
-    '_blank',
-    'noopener,noreferrer'
-  );
-}
-
-openTabButton.addEventListener('click', openExternal);
-
-/* =========================================================
-   AUTH — STORAGE
-========================================================= */
-
-function readAuth() {
-  try {
-    const raw = localStorage.getItem(AUTH_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
+function broadcast(msg, except){
+  for(const c of net.conns){
+    if(c === except || !c.open) continue;
+    try{ c.send(msg); }catch(e){}
   }
 }
-
-function writeAuth(auth) {
-  try { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); } catch {}
+function sendToHost(msg){
+  const c = net.conns[0];
+  if(c && c.open){ try{ c.send(msg); }catch(e){} }
 }
 
-function clearAuth() {
-  try { localStorage.removeItem(AUTH_KEY); } catch {}
+function applyBlock(x, y, id){
+  setTile(x, y, id);
 }
 
-/* =========================================================
-   HASH — LINK MÁGICO
-========================================================= */
+/* --------- mensagens recebidas --------- */
+function onData(conn, msg){
+  if(!msg || typeof msg !== 'object') return;
+  const id = conn.peer;
 
-function cleanHash() {
-  if (!window.location.hash) return;
-  history.replaceState(
-    null, '',
-    window.location.pathname + window.location.search
-  );
-}
+  switch(msg.t){
 
-function consumeAuthHash() {
-  const hash = window.location.hash || '';
-  if (hash.length < 2) return null;
+    case 'hello': {
+      net.players.set(id, {
+        x: player.x + (Math.random()*4 - 2), y: player.y,
+        flip: 1, name: msg.name || 'Jogador', color: msg.color || '#e07a5f'
+      });
+      break;
+    }
 
-  const params = new URLSearchParams(hash.slice(1));
-  const accessToken = params.get('access_token');
-  const refreshToken = params.get('refresh_token');
-  const expiresIn = Number(params.get('expires_in')) || 3600;
-  const error = params.get('error_description') || params.get('error');
+    case 'pos': {
+      let p = net.players.get(id);
+      if(!p){
+        p = { name: msg.name || 'Jogador', color: msg.color || '#e07a5f' };
+        net.players.set(id, p);
+      }
+      p.x = msg.x; p.y = msg.y; p.flip = msg.flip;
+      if(msg.name)  p.name  = msg.name;
+      if(msg.color) p.color = msg.color;
+      if(net.isHost) broadcast(Object.assign({}, msg, { t:'pos', id }), conn);
+      break;
+    }
 
-  cleanHash();
+    case 'block': {
+      applyBlock(msg.x, msg.y, msg.id);
+      if(net.isHost){
+        net.edits.set(msg.x + ',' + msg.y, msg.id);
+        broadcast(Object.assign({}, msg, { t:'block', id }), conn);
+      }
+      break;
+    }
 
-  if (error) {
-    return { error: decodeURIComponent(error.replace(/\+/g, ' ')) };
+    case 'init': {
+      worldSeed = msg.seed;
+      clearWorld();
+      for(const [k, v] of msg.edits){
+        const parts = k.split(',');
+        applyBlock(parseInt(parts[0],10), parseInt(parts[1],10), v);
+      }
+      net.players.clear();
+      for(const p of msg.players){
+        if(p.id === net.myId) continue;
+        net.players.set(p.id, p);
+      }
+      respawn();
+      startGame();
+      break;
+    }
+
+    case 'leave': {
+      net.players.delete(msg.id);
+      break;
+    }
   }
-
-  if (!accessToken) return null;
-
-  const auth = {
-    access_token: accessToken,
-    refresh_token: refreshToken || null,
-    expires_at: Date.now() + expiresIn * 1000
-  };
-
-  writeAuth(auth);
-  setAuthCookie(auth.access_token, auth.expires_at);
-
-  return auth;
 }
 
-/* =========================================================
-   SUPABASE
-========================================================= */
-
-async function fetchUser(accessToken) {
-  const response = await fetch(SUPABASE_URL + '/auth/v1/user', {
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: 'Bearer ' + accessToken
+function setupConnection(conn){
+  conn.on('open', () => {
+    if(net.isHost){
+      // manda o estado do mundo para o recém-chegado
+      const playersArr = [];
+      playersArr.push({ id: net.myId, x: player.x, y: player.y, flip: player.flip,
+                        name: player.name, color: player.color });
+      for(const [pid, p] of net.players){
+        playersArr.push({ id: pid, x: p.x, y: p.y, flip: p.flip,
+                          name: p.name, color: p.color });
+      }
+      conn.send({
+        t: 'init',
+        seed: worldSeed,
+        you: conn.peer,
+        edits: Array.from(net.edits.entries()),
+        players: playersArr
+      });
     }
   });
-  if (!response.ok) return null;
-  const user = await response.json().catch(() => null);
-  return (user && user.email) ? user : null;
+
+  conn.on('data', (msg) => onData(conn, msg));
+
+  conn.on('close', () => {
+    net.players.delete(conn.peer);
+    net.conns = net.conns.filter(c => c !== conn);
+    if(net.isHost) broadcast({ t:'leave', id: conn.peer });
+    updateHUD();
+  });
+
+  conn.on('error', (e) => console.warn('conn error', e));
 }
 
-async function refreshSession(refreshToken) {
-  const response = await fetch(
-    SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token',
-    {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ refresh_token: refreshToken })
-    }
-  );
-  if (!response.ok) return null;
-  const data = await response.json().catch(() => null);
-  if (!data || !data.access_token) return null;
+/* --------- HOST --------- */
+function hostGame(){
+  const code = makeCode();
+  net.isHost = true;
+  net.roomCode = code;
+  net.myId = peerIdFor(code);
 
-  const auth = {
-    access_token: data.access_token,
-    refresh_token: data.refresh_token || refreshToken,
-    expires_at: Date.now() + (data.expires_in || 3600) * 1000
+  setStatus('Criando mundo...', '');
+  net.peer = new Peer(net.myId, { debug: 0 });
+
+  net.peer.on('open', () => {
+    worldSeed = Math.floor(Math.random()*1000000);
+    net.players.clear();
+    net.edits.clear();
+    clearWorld();
+    respawn();
+    showRoomCode(code);
+    startGame();
+  });
+
+  net.peer.on('connection', (conn) => {
+    net.conns.push(conn);
+    setupConnection(conn);
+  });
+
+  net.peer.on('error', (err) => {
+    console.error(err);
+    setStatus('Erro ao criar a sala: ' + err.type + '. Tente novamente.', 'err');
+  });
+}
+
+/* --------- CLIENTE --------- */
+function joinGame(code){
+  code = (code || '').trim().toUpperCase();
+  if(code.length < 4){ setStatus('Digite um código válido (4 caracteres).', 'err'); return; }
+
+  net.isHost = false;
+  net.roomCode = code;
+  setStatus('Conectando ao mundo...', '');
+
+  net.peer = new Peer({ debug: 0 });
+
+  net.peer.on('open', (id) => {
+    net.myId = id;
+    const conn = net.peer.connect(peerIdFor(code), { reliable: true });
+    net.conns = [conn];
+    setupConnection(conn);
+
+    conn.on('open', () => {
+      conn.send({ t:'hello', name: player.name, color: player.color });
+      setStatus('Conectado! Carregando mundo...', 'ok');
+    });
+
+    setTimeout(() => {
+      if(state !== 'playing'){
+        setStatus('Não foi possível entrar. Verifique o código e se o host está online.', 'err');
+      }
+    }, 9000);
+  });
+
+  net.peer.on('error', (err) => {
+    console.error(err);
+    if(err.type === 'peer-unavailable')
+      setStatus('Sala não encontrada. Confira o código.', 'err');
+    else
+      setStatus('Erro de conexão: ' + err.type, 'err');
+  });
+}
+
+/* --------- ENVIO DE POSIÇÃO --------- */
+let netAccum = 0;
+const NET_RATE = 1/18;
+
+function netTick(dt){
+  netAccum += dt;
+  if(netAccum < NET_RATE) return;
+  netAccum = 0;
+
+  const msg = { t:'pos', x: player.x, y: player.y, flip: player.flip,
+                name: player.name, color: player.color };
+
+  if(net.isHost){
+    broadcast(Object.assign({}, msg, { id: net.myId }));
+  } else {
+    sendToHost(msg);
+  }
+}
+
+/* =========================================================
+   6. CANVAS / RENDER
+   ========================================================= */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d', { alpha: false });
+let camX = 0, camY = 0;
+
+function resize(){
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener('resize', resize);
+resize();
+
+const shadeCache = new Map();
+function shade(hex, light){
+  const l = Math.max(0, Math.min(15, Math.round(light*15)));
+  const key = hex + l;
+  let c = shadeCache.get(key);
+  if(c) return c;
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const f = 0.07 + 0.93 * (l/15);
+  c = 'rgb(' + Math.round(r*f) + ',' + Math.round(g*f) + ',' + Math.round(b*f) + ')';
+  shadeCache.set(key, c);
+  return c;
+}
+
+const lightSources = [];
+
+function computeLight(wx, wy){
+  const sh = getSurface(wx);
+  const depth = wy - sh;
+  let best = (depth <= 0) ? 1 : Math.max(0.09, 1 - depth/22);
+
+  for(let i = 0; i < lightSources.length; i++){
+    const p = lightSources[i];
+    const dx = wx + 0.5 - p.x;
+    const dy = wy + 0.5 - p.y;
+    const d2 = dx*dx + dy*dy;
+    if(d2 < 110){
+      const l = 1 - Math.sqrt(d2) / 10.5;
+      if(l > best) best = l;
+    }
+  }
+  return best;
+}
+
+function render(){
+  const W = canvas.width, H = canvas.height;
+
+  // céu
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#4f9ed6');
+  sky.addColorStop(0.6, '#8ec6e8');
+  sky.addColorStop(1, '#bfe0f2');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  if(state !== 'playing' && state !== 'connecting') return;
+
+  const cx = Math.round(player.x * TILE - W/2);
+  const cy = Math.round((player.y - 0.9) * TILE - H/2);
+  camX = cx; camY = cy;
+
+  const tx0 = Math.floor(camX / TILE) - 1;
+  const tx1 = Math.ceil((camX + W) / TILE) + 1;
+  const ty0 = Math.max(0, Math.floor(camY / TILE) - 1);
+  const ty1 = Math.min(WORLD_BOTTOM, Math.ceil((camY + H) / TILE) + 1);
+
+  // fontes de luz
+  lightSources.length = 0;
+  lightSources.push({ x: player.x, y: player.y - 0.9 });
+  for(const p of net.players.values()) lightSources.push({ x: p.x, y: p.y - 0.9 });
+
+  const CAVE_BG = '#241d16';
+
+  for(let ty = ty0; ty < ty1; ty++){
+    const sh = getSurface(tx0);
+    for(let tx = tx0; tx < tx1; tx++){
+      const t = getTile(tx, ty);
+      const px = tx*TILE - camX;
+      const py = ty*TILE - camY;
+
+      if(t === 0){
+        const surf = getSurface(tx);
+        if(ty > surf){
+          const light = computeLight(tx, ty);
+          ctx.fillStyle = shade(CAVE_BG, light * 0.75);
+          ctx.fillRect(px, py, TILE, TILE);
+        }
+        continue;
+      }
+
+      const light = computeLight(tx, ty);
+      const nq = hash2(tx, ty, 7) * 0.18 - 0.09;
+      ctx.fillStyle = shade(BLOCKS[t].c, Math.max(0, light + nq * light));
+      ctx.fillRect(px, py, TILE, TILE);
+    }
+  }
+
+  // jogadores remotos
+  for(const p of net.players.values()){
+    drawPlayer(p.x, p.y, p.flip, p.color, p.name, false);
+  }
+  // jogador local
+  drawPlayer(player.x, player.y, player.flip, player.color, null, true);
+
+  // destaque do bloco alvo + progresso de mineração
+  const target = tileUnderCursor();
+  if(target && inReach(target.x, target.y)){
+    const px = target.x*TILE - camX;
+    const py = target.y*TILE - camY;
+    ctx.strokeStyle = 'rgba(255,255,255,.65)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px + 1, py + 1, TILE - 2, TILE - 2);
+    if(mineProgress > 0 && mineTarget &&
+       mineTarget.x === target.x && mineTarget.y === target.y){
+      const hard = HARDNESS[getTile(target.x, target.y)] || 1;
+      const frac = Math.min(1, mineProgress / hard);
+      ctx.fillStyle = 'rgba(0,0,0,' + (0.15 + frac*0.55) + ')';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#7ee0a0';
+      ctx.fillRect(px, py + TILE - 4, TILE * frac, 4);
+    }
+  }
+}
+
+function drawPlayer(x, y, flip, color, name, isMe){
+  const px = x*TILE - camX;
+  const py = y*TILE - camY;
+  const w = 0.62*TILE;
+  const h = 1.8*TILE;
+  const left = px - w/2;
+  const top = py - h;
+
+  // sombra
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.beginPath();
+  ctx.ellipse(px, py, w*0.62, w*0.26, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // pernas
+  ctx.fillStyle = '#2c3b4d';
+  ctx.fillRect(left, top + 1.30*TILE, w, 0.50*TILE);
+  // corpo
+  ctx.fillStyle = color;
+  ctx.fillRect(left, top + 0.55*TILE, w, 0.76*TILE);
+  // cabeça
+  ctx.fillStyle = '#f2c9a0';
+  ctx.fillRect(px - 0.29*TILE, top, 0.58*TILE, 0.56*TILE);
+  // olho
+  ctx.fillStyle = '#1a2230';
+  const eyeX = px + (flip >= 0 ? 0.06*TILE : -0.16*TILE);
+  ctx.fillRect(eyeX, top + 0.20*TILE, 0.09*TILE, 0.11*TILE);
+
+  if(name){
+    ctx.font = '600 12px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(0,0,0,.55)';
+    const tw = ctx.measureText(name).width;
+    ctx.fillRect(px - tw/2 - 6, top - 24, tw + 12, 18);
+    ctx.fillStyle = isMe ? '#7ee0a0' : '#ffffff';
+    ctx.fillText(name, px, top - 11);
+  }
+}
+
+/* =========================================================
+   7. INPUT
+   ========================================================= */
+const keys = {};
+let mouseX = 0, mouseY = 0;
+let mouseLeft = false, mouseRight = false;
+let placeCooldown = 0;
+let selectedSlot = 0;
+
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+
+  if(e.code.startsWith('Digit')){
+    const n = parseInt(e.code.slice(5), 10);
+    if(n >= 1 && n <= 9){ selectedSlot = n - 1; updateHotbar(); }
+  }
+});
+window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+canvas.addEventListener('mousemove', (e) => {
+  const r = canvas.getBoundingClientRect();
+  mouseX = e.clientX - r.left;
+  mouseY = e.clientY - r.top;
+});
+canvas.addEventListener('mousedown', (e) => {
+  if(e.button === 0) mouseLeft = true;
+  if(e.button === 2) mouseRight = true;
+});
+window.addEventListener('mouseup', (e) => {
+  if(e.button === 0){ mouseLeft = false; mineProgress = 0; mineTarget = null; }
+  if(e.button === 2) mouseRight = false;
+});
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+canvas.addEventListener('wheel', (e) => {
+  selectedSlot = (selectedSlot + (e.deltaY > 0 ? 1 : -1) + 9) % 9;
+  updateHotbar();
+  e.preventDefault();
+}, { passive:false });
+
+/* --------- helpers de mira --------- */
+function tileUnderCursor(){
+  if(state !== 'playing') return null;
+  return {
+    x: Math.floor((mouseX + camX) / TILE),
+    y: Math.floor((mouseY + camY) / TILE)
   };
-  writeAuth(auth);
-  setAuthCookie(auth.access_token, auth.expires_at);
-  return auth;
+}
+function inReach(tx, ty){
+  const dx = (tx + 0.5) - player.x;
+  const dy = (ty + 0.5) - (player.y - 0.9);
+  return dx*dx + dy*dy <= REACH*REACH;
 }
 
-async function getSession() {
-  let auth = readAuth();
-  if (!auth || !auth.access_token) return null;
+let mineTarget = null;
+let mineProgress = 0;
 
-  const expired =
-    auth.expires_at &&
-    Date.now() > auth.expires_at - SESSION_SKEW_MS;
+function handleMining(dt){
+  if(!mouseLeft){ mineProgress = 0; mineTarget = null; return; }
 
-  if (expired) {
-    if (!auth.refresh_token) { clearAuth(); return null; }
-    auth = await refreshSession(auth.refresh_token);
-    if (!auth) { clearAuth(); return null; }
+  const t = tileUnderCursor();
+  if(!t || !inReach(t.x, t.y)){ mineProgress = 0; mineTarget = null; return; }
+
+  const id = getTile(t.x, t.y);
+  if(id === 0 || id === 13){ mineProgress = 0; mineTarget = null; return; }
+
+  if(!mineTarget || mineTarget.x !== t.x || mineTarget.y !== t.y){
+    mineTarget = { x: t.x, y: t.y };
+    mineProgress = 0;
   }
 
-  const user = await fetchUser(auth.access_token);
-  if (!user) { clearAuth(); return null; }
+  mineProgress += dt;
+  if(mineProgress >= HARDNESS[id]){
+    breakBlock(t.x, t.y);
+    mineProgress = 0;
+    mineTarget = null;
+  }
+}
 
-  return user;
+function breakBlock(x, y){
+  setTile(x, y, 0);
+  if(net.isHost){
+    net.edits.set(x + ',' + y, 0);
+    broadcast({ t:'block', x, y, id:0 });
+  } else {
+    sendToHost({ t:'block', x, y, id:0 });
+  }
+}
+
+function handlePlacing(dt){
+  placeCooldown -= dt;
+  if(!mouseRight || placeCooldown > 0) return;
+  placeCooldown = 0.09;
+
+  const t = tileUnderCursor();
+  if(!t || !inReach(t.x, t.y)) return;
+  if(getTile(t.x, t.y) !== 0) return;
+
+  // não colocar dentro do jogador
+  const half = player.w/2;
+  const pL = player.x - half, pR = player.x + half;
+  const pT = player.y - player.h, pB = player.y;
+  if(t.x + 1 > pL && t.x < pR && t.y + 1 > pT && t.y < pB) return;
+
+  const id = HOTBAR[selectedSlot];
+  setTile(t.x, t.y, id);
+  if(net.isHost){
+    net.edits.set(t.x + ',' + t.y, id);
+    broadcast({ t:'block', x:t.x, y:t.y, id });
+  } else {
+    sendToHost({ t:'block', x:t.x, y:t.y, id });
+  }
 }
 
 /* =========================================================
-   LOGIN
-========================================================= */
+   8. LOOP PRINCIPAL
+   ========================================================= */
+let lastTime = performance.now();
 
-async function sendLoginLink() {
-  const email = emailInput.value.trim().toLowerCase();
+function update(dt){
+  // movimento horizontal
+  let ax = 0;
+  if(keys['KeyA'] || keys['ArrowLeft'])  ax -= 1;
+  if(keys['KeyD'] || keys['ArrowRight']) ax += 1;
 
-  if (!email) {
-    loginMessage.textContent = 'Digite seu e-mail.';
-    loginMessage.className = 'login-message error';
-    return;
+  if(ax !== 0){
+    player.vx = ax * MOVE_SPEED;
+    player.flip = ax;
+  } else {
+    player.vx *= Math.pow(0.0008, dt);
+    if(Math.abs(player.vx) < 0.05) player.vx = 0;
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    loginMessage.textContent = 'Digite um e-mail válido.';
-    loginMessage.className = 'login-message error';
-    return;
+  // pulo
+  if((keys['Space'] || keys['KeyW'] || keys['ArrowUp']) && player.onGround){
+    player.vy = -JUMP_VEL;
+    player.onGround = false;
   }
 
-  loginButton.disabled = true;
-  loginButton.textContent = 'Enviando...';
-  loginMessage.textContent = 'Enviando link de acesso...';
-  loginMessage.className = 'login-message';
+  // gravidade
+  player.vy += GRAVITY * dt;
+  if(player.vy > MAX_FALL) player.vy = MAX_FALL;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  // física
+  player.x += player.vx * dt;
+  collideX(player);
+  player.y += player.vy * dt;
+  collideY(player);
 
-  try {
-    const redirectTo = window.location.origin + '/';
+  // limites verticais
+  if(player.y > WORLD_BOTTOM + 5) respawn();
 
-    const response = await fetch(
-      SUPABASE_URL + '/auth/v1/otp?redirect_to=' +
-        encodeURIComponent(redirectTo),
-      {
-        method: 'POST',
-        headers: {
-          apikey: SUPABASE_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, create_user: true }),
-        signal: controller.signal
-      }
-    );
+  handleMining(dt);
+  handlePlacing(dt);
+  netTick(dt);
 
-    let data = {};
-    try { data = await response.json(); } catch {}
-
-    if (!response.ok) {
-      throw new Error(
-        data.msg || data.message ||
-        data.error_description ||
-        'Não foi possível enviar o e-mail.'
-      );
-    }
-
-    loginMessage.textContent =
-      'Link enviado! Verifique seu e-mail e toque no link para entrar.';
-    loginMessage.className = 'login-message success';
-
-  } catch (error) {
-    loginMessage.textContent =
-      error.name === 'AbortError'
-        ? 'A solicitação demorou demais. Tente novamente.'
-        : (error.message || 'Erro ao enviar o link.');
-    loginMessage.className = 'login-message error';
-  } finally {
-    clearTimeout(timeout);
-    loginButton.disabled = false;
-    loginButton.textContent = 'Enviar link de acesso';
-  }
+  // HUD
+  coordsEl.textContent = Math.floor(player.x) + ', ' + Math.floor(player.y);
 }
 
-loginButton.addEventListener('click', sendLoginLink);
+function loop(now){
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
 
-emailInput.addEventListener('keydown', event => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    sendLoginLink();
+  if(state === 'playing') update(dt);
+  render();
+
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   9. UI
+   ========================================================= */
+const menuEl     = document.getElementById('menu');
+const statusEl   = document.getElementById('status');
+const hudEl      = document.getElementById('hud');
+const hotbarEl   = document.getElementById('hotbar');
+const roomInfoEl = document.getElementById('roomInfo');
+const countEl    = document.getElementById('playerCount');
+const coordsEl   = document.getElementById('coords');
+const nameInput  = document.getElementById('nameInput');
+const codeInput  = document.getElementById('codeInput');
+
+const PALETTE = ['#4fa3e0','#e07a5f','#7ee0a0','#f2c14e','#c084fc','#f472b6','#38bdf8','#a3e635'];
+
+nameInput.value = 'Jogador' + Math.floor(Math.random()*900 + 100);
+
+function setStatus(txt, cls){
+  statusEl.textContent = txt;
+  statusEl.className = cls || '';
+}
+function showRoomCode(code){
+  statusEl.innerHTML =
+    'Sala criada! Compartilhe o código:<div class="code">' + code + '</div>' +
+    '<span style="color:#7ee0a0">Aguardando jogadores...</span>';
+  statusEl.className = '';
+}
+function updateHotbar(){
+  const slots = hotbarEl.children;
+  for(let i = 0; i < slots.length; i++){
+    slots[i].classList.toggle('sel', i === selectedSlot);
   }
+}
+function buildHotbar(){
+  hotbarEl.innerHTML = '';
+  HOTBAR.forEach((id, i) => {
+    const d = document.createElement('div');
+    d.className = 'slot';
+    d.style.background = BLOCKS[id].c;
+    d.title = BLOCKS[id].n;
+    d.innerHTML = '<span class="key">' + (i+1) + '</span>';
+    d.style.pointerEvents = 'auto';
+    d.addEventListener('click', () => { selectedSlot = i; updateHotbar(); });
+    hotbarEl.appendChild(d);
+  });
+  updateHotbar();
+}
+function updateHUD(){
+  countEl.textContent = '👥 ' + (net.players.size + 1);
+  roomInfoEl.innerHTML = 'Sala: <b>' + (net.roomCode || '—') + '</b>';
+}
+
+function startGame(){
+  state = 'playing';
+  menuEl.classList.add('hide');
+  hudEl.classList.add('on');
+  updateHUD();
+  setTimeout(() => {
+    const h = document.getElementById('hint');
+    if(h) h.style.opacity = '0';
+  }, 6000);
+}
+
+/* --------- botões --------- */
+document.getElementById('hostBtn').addEventListener('click', () => {
+  if(typeof Peer === 'undefined'){
+    setStatus('Biblioteca de rede não carregou. Verifique sua internet.', 'err');
+    return;
+  }
+  player.name = (nameInput.value || 'Host').slice(0, 12);
+  player.color = PALETTE[0];
+  document.getElementById('hostBtn').disabled = true;
+  document.getElementById('joinBtn').disabled = true;
+  hostGame();
+});
+
+document.getElementById('joinBtn').addEventListener('click', () => {
+  if(typeof Peer === 'undefined'){
+    setStatus('Biblioteca de rede não carregou. Verifique sua internet.', 'err');
+    return;
+  }
+  player.name = (nameInput.value || 'Jogador').slice(0, 12);
+  player.color = PALETTE[Math.floor(Math.random()*PALETTE.length)];
+  document.getElementById('hostBtn').disabled = true;
+  document.getElementById('joinBtn').disabled = true;
+  joinGame(codeInput.value);
+});
+
+codeInput.addEventListener('input', () => {
+  codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+});
+codeInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('joinBtn').click();
+});
+nameInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('hostBtn').click();
 });
 
 /* =========================================================
-   ENTRAR / SAIR
-========================================================= */
+   10. INICIALIZAÇÃO
+   ========================================================= */
+buildHotbar();
+respawn();
+requestAnimationFrame(loop);
 
-function showLoggedUser(email) {
-  loggedIn = true;
-  loginOverlay.classList.add('hidden');
-  accountEmail.textContent = email;
-  accountAvatar.textContent = email.charAt(0).toUpperCase();
-  setTimeout(() => urlInput.focus(), 200);
-}
-
-function showLogin(message = '', type = '') {
-  loggedIn = false;
-  loginOverlay.classList.remove('hidden');
-
-  if (message) {
-    loginMessage.textContent = message;
-    loginMessage.className = 'login-message' + (type ? ' ' + type : '');
-  }
-  setTimeout(() => emailInput.focus(), 200);
-}
-
-async function logout() {
-  const auth = readAuth();
-  clearAuth();
-  clearAuthCookie();
-  loggedIn = false;
-  accountEmail.textContent = '—';
-  accountAvatar.textContent = '?';
-
-  if (auth && auth.access_token) {
-    fetch(SUPABASE_URL + '/auth/v1/logout', {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: 'Bearer ' + auth.access_token
-      }
-    }).catch(() => {});
-  }
-
-  showLogin();
-}
-
-function handleAccountAction() {
-  if (!loggedIn) return;
-  if (window.confirm('Sair da conta?')) logout();
-}
-
-account.addEventListener('click', handleAccountAction);
-account.addEventListener('keydown', event => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    handleAccountAction();
-  }
-});
-
-/* =========================================================
-   INIT
-========================================================= */
-
-(async function init() {
-  setStatus('Pronto · Rammerhead via 3proxy');
-
-  urlInput.value = 'https://example.com';
-
-  const hashResult = consumeAuthHash();
-
-  let user = null;
-  try { user = await getSession(); } catch { user = null; }
-
-  if (user) {
-    showLoggedUser(user.email);
-    return;
-  }
-
-  if (hashResult && hashResult.error) {
-    showLogin(hashResult.error, 'error');
-    return;
-  }
-
-  showLogin();
 })();
 </script>
-
 </body>
 </html>
